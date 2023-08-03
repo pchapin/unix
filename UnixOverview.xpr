@@ -17,13 +17,12 @@
             </serialized>
         </options>
     </meta>
-    <projectTree name="Unix-Overview.xpr">
+    <projectTree name="UnixOverview.xpr">
         <folder masterFiles="true" name="Master Files">
-            <file name="Unix-Overview.xml"/>
+            <file name="UnixOverview.xml"/>
         </folder>
         <file name="basics.xml"/>
         <file name="commands.xml"/>
         <file name="shell.xml"/>
-        <file name="Unix-Overview.xml"/>
     </projectTree>
 </project>
