@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <meta>
+        <filters directoryPatterns="" filePatterns="" positiveFilePatterns="" showHiddenFiles="false"/>
+        <options>
+            <serialized xml:space="preserve">
+                <serializableOrderedMap>
+                    <entry>
+                        <String>enable.project.master.files.support</String>
+                        <Boolean>true</Boolean>
+                    </entry>
+                    <entry>
+                        <String>storage.level.scenario.associations</String>
+                        <Boolean>false</Boolean>
+                    </entry>
+                </serializableOrderedMap>
+            </serialized>
+        </options>
+    </meta>
+    <projectTree name="Unix-Overview.xpr">
+        <folder masterFiles="true" name="Master Files">
+            <file name="Unix-Overview.xml"/>
+        </folder>
+        <file name="basics.xml"/>
+        <file name="commands.xml"/>
+        <file name="shell.xml"/>
+        <file name="Unix-Overview.xml"/>
+    </projectTree>
+</project>

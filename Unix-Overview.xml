@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+   "http://www.docbook.org/xml/4.5/docbookx.dtd" [
+   
+<!ELEMENT xi:include (xi:fallback?) >
+<!ATTLIST xi:include
+    xmlns:xi   CDATA      #FIXED     "http://www.w3.org/2001/XInclude"
+    href       CDATA      #REQUIRED
+    parse      (xml|text) "xml"
+    encoding   CDATA      #IMPLIED >
+<!ELEMENT xi:fallback ANY>
+<!ATTLIST xi:fallback
+    xmlsn:xi   CDATA      #FIXED     "http://www.w3.org/2001/XInclude" >
+<!ENTITY % local.chapter.class "| xi:include">
+<!ENTITY % local.section.class "| xi:include">
+]>
+
+<!-- FILE        : Unix-Overview.xml
+     LAST REVISED: 2023-08-03
+     AUTHOR      : (C) Copyright 2023 by Peter Chapin
+
+This article contains an overview of the Unix operating system from a user's perspective. This
+book is intended to support beginning students of Unix at Vermont State University. -->
+
+<book>
+  <bookinfo>
+    <title>Unix Overview</title>
+    <author>
+      <firstname>Peter</firstname>
+      <surname>Chapin</surname>
+      <affiliation>
+        <orgname>Vermont State University</orgname>
+        <orgdiv>Computer Information Systems Department</orgdiv>
+      </affiliation>
+    </author>
+    <copyright>
+      <year>2023</year>
+      <holder>Peter Chapin</holder>
+    </copyright>
+    <legalnotice>
+      <para>Permission is granted to copy, distribute and/or modify this document under the terms
+        of the GNU Free Documentation License, Version 1.1 or any later version published by the
+        Free Software Foundation; with no Invariant Sections, with no Front-Cover Texts, and with
+        no Back-Cover Texts. A copy of the license is included in the file GFDL.txt distributed
+        with the DocBook source of this document.</para>
+    </legalnotice>
+  </bookinfo>
+
+  <xi:include href="basics.xml"/>
+  <xi:include href="commands.xml"/>
+  <xi:include href="shell.xml"/>
+
+  <!-- <bibliography> ... </bibliography> -->
+
+</book>

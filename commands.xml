@@ -1,0 +1,847 @@
+<?xml version="1.0"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+  "http://www.docbook.org/xml/4.5/docbookx.dtd">
+
+<!-- FILE        : commands.xml
+     LAST REVISED: 2023-08-03
+     AUTHOR      : (C) Copyright 2023 by Peter Chapin -->
+
+<chapter>
+  <title>Basic Unix Commands</title>
+
+  <para>This document gives a very brief overview of the basic Unix commands. Please refer to a
+    book or the online documentation for more information. Don't be afraid to experiment with a
+    command to figure out what it does. There is a fair amount of variation from one Unix system
+    to another. Experimentation is usually the best way to understand how your system
+    works.</para>
+
+  <warning>
+    <para>Many Unix commands will do nasty things without asking for confirmation. Thus if you
+      have no idea what a command does, you should read about the command first. This simple
+      practice will save you a lot of grief. Don't trust Unix utilities to ask first. They
+      don't.</para>
+  </warning>
+
+  <section>
+    <title>Online Documentation. The Unix Manual</title>
+
+    <para>The Unix manual is, of course, available in printed form. In fact, you can buy it at a
+      good computer bookstore. It's rather large&#x2014;many volumes. Most Unix systems have the
+      manual online. You can access it via the <command>man</command> command. For example, if you
+      want to read the manual page on the <command>cp</command> command, type</para>
+
+    <screen>
+$ man cp
+</screen>
+
+    <para>at the prompt (the '$' above represents the prompt; your prompt might look different).
+      Typically the <command>man</command> command will automatically pipe the output through the
+        <command>more</command> filter for easy reading. If you want to keep a manual page around
+      to read later, try redirecting the output of <command>man</command> to a file.</para>
+
+    <screen>
+$ man cp >cp.man
+</screen>
+
+    <para>The Unix manual comes in roughly eight sections, although the precise number depends
+      somewhat on which Unix system you are using. Here is what is covered in each section.</para>
+
+    <table frame="all">
+      <title>Unix Manual Sections</title>
+      <tgroup cols="2">
+        <tbody>
+
+          <row>
+            <entry>Section #1</entry>
+
+            <entry>The utility programs (<command>ls</command>, <command>ps</command>,
+                <command>cc</command>, <command>sh</command>, ...) Unix comes with many utility
+              programs from those that do basic file manipulation to those that support serious
+              program and document development.</entry>
+          </row>
+
+          <row>
+            <entry>Section #2</entry>
+
+            <entry>The system calls (a C library). This section documents the Unix API as seen by
+              a C programmer. Functions like <function>open</function>,
+              <function>chmod</function>, <function>setuid</function>, etc are here.</entry>
+          </row>
+
+          <row>
+            <entry>Section #3</entry>
+
+            <entry>The C library. This section documents all the functions available to a C
+              programmer that are not true system calls. Functions like
+              <function>fopen</function>, <function>strlen</function>,
+                <function>isalpha</function>, etc are here.</entry>
+          </row>
+
+          <row>
+            <entry>Section #4</entry>
+            <entry>Information on "special files"</entry>
+          </row>
+
+          <row>
+            <entry>Section #5</entry>
+
+            <entry>Information on the file formats. By consulting this section, you can write your
+              own programs that manipulate the various system files. This section also typically
+              contains tutorial information.</entry>
+          </row>
+
+          <row>
+            <entry>Section #6</entry>
+            <entry>The rules for the games that are on the system.</entry>
+          </row>
+
+          <row>
+            <entry>Section #7</entry>
+
+            <entry>"Miscellaneous Useful Information Files." For example, information on nroff
+              macros might be found here.</entry>
+          </row>
+
+          <row>
+            <entry>Section #8</entry>
+
+            <entry>System management commands and procedures. Section one contains information
+              about management commands that are of interest to the general user (actually called
+              section 1M). This section pertains to commands that either cannot be executed by the
+              general user or that would be useless to the general user.</entry>
+          </row>
+
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>The <command>man</command> command lets up look things up in any section. For
+      example</para>
+
+    <screen>
+$ man fopen
+</screen>
+
+    <para>gives you information on the C library <function>fopen</function> function.</para>
+
+    <para>In some cases a name appears in more than one manual section. For example if you
+      do</para>
+
+    <screen>
+$ man chmod
+</screen>
+
+    <para>you get information on the <command>chmod</command> utility program from section 1. If
+      you want information on the <function>chmod</function> system call, you must do</para>
+
+    <screen>
+$ man 2 chmod
+</screen>
+
+    <para>since the system calls are in section 2.</para>
+
+    <para>Unix manual pages have a standard format. Many third-party programs use the same format
+      for their documentation. You will get used to it once you've looked at enough manual
+      pages.</para>
+
+  </section>
+
+  <section>
+    <title>A Tour of the File System</title>
+
+    <para>All Unix systems have certain standard directories. Although the underlying operating
+      system doesn't care about the precise directory structure, many of the standard Unix
+      utilities have specific directory names hard coded into their source code. Here is a list of
+      some of the more interesting directories and what you might find in them.</para>
+
+    <para>There is an effort in progress to standardize the organization of the Unix file system
+      in order to facilitate the creation of portable scripts and administrative tools. For more
+      information see the Filesystem Hierarchy Standard at <ulink
+        url="http://www.pathname.com/fhs/">http://www.pathname.com/fhs/</ulink>.</para>
+
+    <variablelist>
+      <title>Common Unix Directories</title>
+      <varlistentry>
+        <term>
+          <filename>/bin</filename>
+          <filename>/usr/bin</filename>
+        </term>
+
+        <listitem>
+          <para>Here are where all the utility programs are stored. The most commonly used
+            programs are put into <filename>/bin</filename>. The less commonly used programs are
+            put into <filename>/usr/bin</filename>. On some systems, <filename>/bin</filename> may
+            be the only directory of the two available when the system is booted into single user
+            mode.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/tmp</filename>
+        </term>
+        <term>
+          <filename>/var/tmp</filename>
+        </term>
+
+        <listitem>
+          <para>Many programs write temporary files into <filename>/tmp</filename>. These
+            directories are wide open to all users. Files stored in <filename>/tmp</filename>
+            should not stay there very long.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/lib</filename>
+        </term>
+        <term>
+          <filename>/usr/lib</filename>
+        </term>
+
+        <listitem>
+          <para>Here is where compiled library files such as the C library are stored. Also
+            certain programs that are not normally executed directly by the user are stored here.
+            For example, the C compiler has two passes. They are stored in
+              <filename>/lib</filename>. The dictionary for the spell program, the macro packages
+            for <command>nroff</command>, and many other things are stored in
+              <filename>/usr/lib</filename>.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/usr/share/man</filename>
+        </term>
+
+        <listitem>
+          <para>Here is where the online manual is stored. This directory contains subdirectories
+            for each manual section. For example, <filename>/usr/share/man/man1</filename>
+            contains all the manual pages for section 1 in compressed form.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/usr/include</filename>
+        </term>
+
+        <listitem>
+          <para>Here is where the header files used with C programming are stored. This directory
+            is the standard place where the C compile looks when it sees header files included
+            with the &lt;...&gt; notation. Notice that there are several subdirectories under
+              <filename>/usr/include</filename> as well.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/usr/local</filename>
+        </term>
+
+        <listitem>
+          <para>This directory contains locally produced items. For example,
+              <filename>/usr/local/bin</filename> contains programs that are not part of the
+            normal Unix distribution, but that are of interest to all users at a particular site.
+            Also under <filename>/usr/local</filename> are directories for local administrative
+            commands, local manual pages, and so forth.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/var</filename>
+        </term>
+
+        <listitem>
+          <para>The <filename>/var</filename> directory is where "variable" files are stored.
+            These files tend to be highly volitale and may change from minute to minute. Incoming
+            mail, log files, and other such things are often stored here.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/var/adm</filename>
+        </term>
+
+        <listitem>
+          <para>On many systems this is where various administrative files are stored. For
+            example, account files, the shutdown log file, and the file that records information
+            about telnet connections are stored here. On most Linux systems,
+              <filename>/var/log</filename> contains all the log files.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/var/spool</filename>
+        </term>
+
+        <listitem>
+          <para>This directory is used for spooling operations of various types. The print daemon,
+              <command>uucp</command>, <command>cron</command>, mail and various other Unix
+            programs that do things automatically use this directory for temporary files and work
+            files.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/home</filename>
+        </term>
+
+        <listitem>
+          <para>On some old systems, user home directories are all kept under
+              <filename>/usr</filename>. However since there are often many home directories and
+            since they often need to be managed with a different policy than that used by the rest
+            of the system, most current systems store user home directories under
+              <filename>/home</filename>. Note that in Unix each ordinary user has a personal
+            directory for storing his/her files. Many Unix applications assume such a directory
+            exists and expect to store all of a user's personal configuration information there.
+            Unix does not have a "registry" in the sense of Windows.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/etc</filename>
+        </term>
+
+        <listitem>
+          <para>This directory contains files and programs of interest to the system
+            administrator. Many system configuration files are in /etc.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <filename>/dev</filename>
+        </term>
+
+        <listitem>
+          <para>This directory contains the special device files. Unix treats all I/O devices as
+            if they were files. By tradition, all such files appear in
+            <filename>/dev</filename>.</para>
+        </listitem>
+
+      </varlistentry>
+
+    </variablelist>
+
+  </section>
+
+  <section>
+    <title>Conventions</title>
+
+    <para>Many of the Unix utility programs can accept several filenames at once on the command
+      line. In general, if it's meaningful for a program to do so, it will have this ability. For
+      example</para>
+
+    <screen>
+$ rm afile.txt
+$ rm afile.txt bfile.txt cfile.txt
+</screen>
+
+    <para>Since the shell expands a wildcard sequence into a list of file names, this works
+      nicely.</para>
+
+    <screen>
+$ rm afile.txt *.bak
+</screen>
+
+    <para>If you find yourself doing things like</para>
+
+    <screen>
+$ rm afile.txt
+$ rm bfile.txt
+$ rm cfile.txt
+</screen>
+
+    <para>you aren't using Unix effectively.</para>
+
+  </section>
+
+  <section>
+    <title>File Manipulation</title>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>
+          <command>ls</command>
+        </term>
+
+        <listitem>
+          <para>This program produces directory listings. If you provide no arguments, it assumes
+            you want to see everything in the working directory. If you give it a filename
+            argument, it produces information on just that file. If you give it a directory name
+            argument, it produces information on all the files in that directory.</para>
+
+          <para>For example:</para>
+
+          <screen>
+$ ls
+$ ls afile.txt
+$ ls subdir
+$ ls *.c
+</screen>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>cp</command>
+        </term>
+
+        <listitem>
+          <para>This program copies files. If the last argument is the name of a directory,
+              <command>cp</command> will copy all the specified files into the specified
+            directory. If the last argument is the name of a file, the first (and only other)
+            argument is the name of the source file.</para>
+
+          <para>For example:</para>
+
+          <screen>
+$ cp afile.txt bfile.txt
+$ cp afile.txt bfile.txt subdir
+</screen>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>mv</command>
+        </term>
+
+        <listitem>
+          <para>This program moves files. Rather than copying the file and then deleting the
+            source, this program just updates the directories. The file itself is not touched.
+            This is a much better way to move a file.</para>
+
+          <para>Its command syntax is similar to that of <command>cp</command>. If the last
+            argument is not the name of a directory, mv assumes you are trying to rename the
+            file.</para>
+
+          <para>For example:</para>
+
+          <screen>
+$ mv afile.txt bfile.txt      # Renames afile.txt
+$ mv afile.txt subdir         # Moves afile.txt
+</screen>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>ln</command>
+        </term>
+
+        <listitem>
+          <para>This program links a file into a directory. Unix allows a file to appear in
+            several subdirectories at once. You can use ln to create such additional directory
+            entries for a file.</para>
+
+          <para>Its command syntax is similar to that of <command>mv</command>. If the last
+            argument is not the name of a directory, ln assumes you are linking the file into a
+            new name.</para>
+
+          <para>For example:</para>
+
+          <screen>
+$ ln afile.txt bfile.txt      # bfile.txt is afile.txt
+$ ln afile.txt subdir         # Link to subdir/afile.txt
+</screen>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>rm</command>
+        </term>
+
+        <listitem>
+          <para>This program deletes files. Actually, <command>rm</command> removes a link. If the
+            link removed was the last link to the file, the file is deleted from the disk. Thus if
+            you've linked a file into several directories, it must be removed from all such
+            directories before it is actually removed from the disk.</para>
+
+          <para>For example:</para>
+
+          <screen>
+$ rm afile.txt bfile.txt
+</screen>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>cat</command>
+        </term>
+
+        <listitem>
+          <para>This program displays the contents of a file to the terminal. It is similar to the
+            Windows <command>type</command> command. You can also use it to create small files
+            without bothering with an editor.</para>
+
+          <para>For example:</para>
+
+          <screen>
+$ cat afile.txt               # Look at afile.txt
+$ cat >afile.txt              # Create afile.txt
+</screen>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>more</command>
+        </term>
+
+        <listitem>
+          <para>This program also allows you to look at the contents of a file. However, unlike
+              <command>cat</command>, it will page the display instead of just scrolling it as
+            quickly as possible. The <command>more</command> command is a much better program to
+            use when you want to see something.</para>
+
+          <para>The <command>more</command> is often used at the far end of a pipe to make looking
+            at the output of the previous commands easier.</para>
+
+          <para>For example:</para>
+
+          <screen>
+$ more afile.txt              # Look at afile.txt
+$ ls -l | more                # Look at ls -l's output.
+</screen>
+
+          <para>The <command>more</command> has many interesting features. Type the 'h' key when
+            it is paused to see its help screen.</para>
+
+          <para>Most modern systems (and all Linux systems) have a related program named
+              <command>less</command> (think: "less is more"). The <command>less</command> is a
+            more powerful version of <command>more</command> with many additional features. Some
+            people use <command>less</command> exclusively and never use
+            <command>more</command>.</para>
+        </listitem>
+
+      </varlistentry>
+    </variablelist>
+
+  </section>
+
+  <section>
+    <title>Directory Manipulation</title>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>
+          <command>cd</command>
+        </term>
+
+        <listitem>
+          <para>This is really a built in shell command and not a utility program. It changes the
+            working directory of the shell (and all processes spawned by the shell) to the
+            directory you specify on the command line. It works exactly like the MS-DOS
+            command.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>mkdir</command>
+        </term>
+        <term>
+          <command>rmdir</command>
+        </term>
+
+        <listitem>
+          <para>These programs make and remove directories. They work exactly like the Windows
+            commands <command>md</command> and <command>rd</command> (except that you can make and
+            remove several directories at once with them).</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>pwd</command>
+        </term>
+
+        <listitem>
+          <para>This program prints the name of the current working directory.</para>
+        </listitem>
+
+      </varlistentry>
+    </variablelist>
+
+  </section>
+
+  <section>
+    <title>Security</title>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>
+          <command>chmod</command>
+        </term>
+
+        <listitem>
+          <para>This program lets you adjusts the permissions on a file or directory. The first
+            way you can use this program is to specify the entire mode of the file(s) you want to
+            change. For example:</para>
+
+          <screen>
+$ chmod 640 afile.txt bfile.txt cfile.txt
+</screen>
+
+          <para>This changes the named files to rw-r------ permissions. The permissions they had
+            are not important.</para>
+
+          <para>The second way you can use this program is to specify the changes you want to
+            make. For example</para>
+
+          <screen>
+$ chmod u+x afile.txt    # Give user (owner) (x) permission
+$ chmod o+r afile.txt    # Give other (public) (r) permission
+$ chmod ug+rw afile.txt  # Give user &amp; group (r) and (w)
+</screen>
+
+          <para>You can only change the permissions on files you own.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>chown</command>
+        </term>
+
+        <listitem>
+          <para>This program lets you change the ownership of a file. You can only change the
+            ownership of files you own. Once you've changed the ownership, you can't change the
+            ownership back. In a system where disk quotas are enforced, <command>chown</command>
+            will probably not be executable by normal users. The syntax of this program's command
+            line is:</para>
+
+          <screen>
+$ chown newowner afile.txt bfile.txt ...
+</screen>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>chgrp</command>
+        </term>
+
+        <listitem>
+          <para>This program lets you change the group association of a file. You can only change
+            the group association of files that have GID of a group for which you are currently a
+            member. The syntax of this program's command line is similar to that of chown.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>umask</command>
+        </term>
+
+        <listitem>
+          <para>This is actually a built-in shell command and not a utility program. (You will
+            find information about it in the sh entry of the manual; not the umask entry) You use
+            umask to define the permission bits that are OFF BY DEFAULT whenever a new file is
+            created. For example</para>
+
+          <screen>
+$ umask 022    # rwxr-xr-x will be the default permissions.
+$ umask 027    # rwxr-x--- are the defaults.
+$ umask 077    # rwx------ are the defaults.
+</screen>
+
+          <para>Normally, you execute a umask command in your shell's login script
+              (<filename>$HOME/.profile</filename> for the Bourne and Korn shells).</para>
+        </listitem>
+
+      </varlistentry>
+    </variablelist>
+
+  </section>
+
+  <section>
+    <title>Communicating with Users</title>
+
+    <para>In any multi-user system there are ways to communicate with other users. There are two
+      category of communications programs. Some programs let you communicate in real time with
+      other users that are currently logged in (chat). Other programs let you send messages to
+      users that are not currently logged in that they can read later (mail).</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>
+          <command>write</command>
+        </term>
+
+        <listitem>
+          <para>This is a primitive Unix chat utility. If you'd like to chat with another user
+            type a command such as</para>
+
+          <screen>
+$ write logname
+</screen>
+
+          <para>Everything you now type is sent to the other user's terminal. The other user can
+            execute a similar command to send text to your terminal.</para>
+
+          <para>Be aware that the material to write to a user will appear on their terminal in the
+            middle of whatever else they were doing. Don't be disconcerted if this happens to
+            you.</para>
+
+          <para>To terminate a write session use the Unix end-of-file character: ^D.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>mesg</command>
+        </term>
+
+        <listitem>
+          <para>This program enables or disables the ability of people to write to you. Use the
+            command <command>mesg n</command> to disable writing and <command>mesg y</command> to
+            enable it. If you just type <command>mesg</command> alone, the program will report on
+            the writable state of your terminal.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>mail</command>
+        </term>
+        <term>
+          <command>mailx</command>
+        </term>
+        <term>
+          <command>pine</command>
+        </term>
+        <term>
+          <command>elm</command>
+        </term>
+
+        <listitem>
+          <para>These programs are all mail programs. They all read and send the same mail files
+            so it doesn't matter which you use. Mail is the simplest. The <command>pine</command>
+            and <command>elm</command> programs are the most sophisticated. The program named
+              <command>mail</command> is available on every Unix system in the universe.</para>
+
+          <para>Discussion about these programs is beyond the scope of this document. I refer you
+            to the online documentation for more information.</para>
+        </listitem>
+
+      </varlistentry>
+    </variablelist>
+
+  </section>
+
+  <section>
+    <title>Programming</title>
+
+    <para>Unix offers an extensive set of programming tools standard. Third parties do sell
+      programming tools to supplement (or replace) the standard ones. However, normally Unix comes
+      right out of the box with support for serious C programming.</para>
+
+    <para>In particular, the system offers a C compiler, a debugger, a profiling system, a source
+      code control system (for managing different versions of a program), and a make utility (for
+      managing the construction of large applications). For the sake of brevity, I will just point
+      out three programs here.</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term>
+          <command>cc</command>
+        </term>
+
+        <listitem>
+          <para> The C compiler. To compile the program <filename>afile.c</filename>, use the
+            command <command>cc afile.c</command>. The executable result will be put into the file
+              <filename>a.out</filename>. You can rename <filename>a.out</filename> with the
+              <command>mv</command> command.</para>
+
+          <para>The <command>cc</command> command takes many options. Refer to the manual for more
+            information.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>vi</command>
+        </term>
+
+        <listitem>
+          <para>One of the standard Unix text editors. <command>Vi</command> was designed to work
+            on any kind of terminal. When <command>vi</command> is in command mode, every letter
+            you type is a command. The "i" command put <command>vi</command> into insert mode. You
+            must be in insert mode to actually enter text into the file. To escape insert mode,
+            you type the ESC key.</para>
+
+          <para>If you are entering text and you want to move the cursor to a new location in the
+            file, you must first leave insert mode (ESC) and then type the appropriate command
+            letters to move the cursor (j,k,h, and l).</para>
+
+          <para>It's actually not that bad once you get used to it.</para>
+        </listitem>
+
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <command>emacs</command>
+        </term>
+
+        <listitem>
+          <para><command>Emacs</command> is a common text editor (but not standard). It's a little
+            easier to use than <command>vi</command>. Instead of having two modes of operation,
+            emacs uses control characters for the commands. There are many different combinations
+            of control characters to be remembered. However, you don't have to worry about
+            changing modes all the time.</para>
+        </listitem>
+
+      </varlistentry>
+    </variablelist>
+
+  </section>
+
+  <section>
+    <title>Manipulating Text Files</title>
+
+    <para>grep, sort, cut, tr, sed, awk, find, tail, wc</para>
+
+  </section>
+
+</chapter>

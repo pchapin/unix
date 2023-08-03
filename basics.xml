@@ -1,0 +1,649 @@
+<?xml version="1.0"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+  "http://www.docbook.org/xml/4.5/docbookx.dtd">
+
+<!-- FILE        : basics.xml
+     LAST REVISED: 2023-08-03
+     AUTHOR      : (C) Copyright 2023 by Peter Chapin -->
+
+<chapter>
+  <title>Basic Unix Concepts</title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>In this section I describe several important concepts that should be familiar to all
+      Unix users. In later sections I describe some common Unix utilities and the standard Unix
+      shell program (the Bourne Shell). I assume you are familiar with Windows. Note that the Unix
+      community typically uses the word "directory" where the Windows community uses the word
+      "folder."</para>
+
+    <!-- I need more here. I should say a few words about Unix in general. -->
+
+  </section>
+
+
+  <section>
+    <title>Terminals, Hosts, and All That</title>
+
+    <para>A legacy Unix systems assumes it will be supporting many users via serial terminals.
+      Such terminals are normally dumb devices that provide a text mode display and a simple
+      keyboard. A Unix system may have many such devices connected to it simultaneously. Some of
+      the connections may be direct serial connections while other connections may be via
+      modems.</para>
+
+    <para>Since Unix supports dumb terminals, the standard Unix utility programs are strictly
+      command line oriented. They do not use graphics or full screen menus. Furthermore, they
+      typically do not understand "function keys" or other extended keys since such keys are not
+      available on all terminals. In addition most of the standard Unix utility programs are not
+      very wordy. In part this is the Unix tradition, but in an environment where slow serial
+      connections are being used, it also helps make the system feel more responsive.</para>
+
+    <para>The rather drab user interface presented by the standard Unix utilities is often seen as
+      a negative aspect of using Unix. On the positive side, however, the utilities can be very
+      quick to use once you know them, and they will work from almost any kind of terminal. In
+      fact, some special "escape sequences" have been standardized to allow programs to do
+      rudimentary graphics on a wide variety of terminal devices. Such programs work as well for
+      dial in users as for direct users.</para>
+
+    <para>More complex terminal based applications typically consult a database of terminal
+      characteristics stored on the system so that they can take maximum advantage of whatever
+      features the terminal supports. Many terminals do have function keys and arrow keys, for
+      example, and some applications will be able to use them if they are available.</para>
+
+    <para>It is important to understand the difference between a Unix system supporting multiple
+      terminal sessions and local area networked file server. When a file server is used, the
+      workstations are fully functional computers. The central machine merely serves as a
+      glorified disk. All the programs one runs actually execute on the workstations. In contrast,
+      with a Unix system supporting terminal sessions, the terminals are dumb. They do not run any
+      of the programs. All the programs are run on the one central machine. Only the screen output
+      and the keyboard input are exchanged with the terminals.</para>
+
+    <para>To make matters more confusing, Unix systems can also be run as file servers in addition
+      to their traditional role of supporting terminals. A common file serving protocol used in
+      the Unix world is called the Network File System (NFS). However, Unix software exists that
+      also allows a Unix machine to appear as a Windows server in a network of Windows
+      clients.</para>
+
+    <para>Many people today use personal computers as if they were terminals. Thus most people who
+      connect to a serial host like a Unix system do so by running a terminal emulator program on
+      their personal desktop or laptop. There are several advantages to using a personal computer
+      as a terminal rather than using a real terminal. First, terminal emulator programs can
+      typically emulate several kinds of terminals. Also terminal emulator programs usually have
+      facilities for recording the data sent to or received from the serial host, and for
+      transferring files. In addition, some terminal programs allow you to interact with several
+      different hosts at once (or the same host as several different users).</para>
+
+    <para>Of course most, Unix machines have a keyboard and monitor connected directly to them.
+      This is what a personal computer user would expect. However, the traditional multi-user
+      serial host does not normally need any kind of built in keyboard or monitor. All interaction
+      done with such a system is done via a dumb terminal. The advantage of using a display device
+      that's directly connected to the machine is that it offers very high speed display
+      capability. In general, however, only one person can use it. Nevertheless, when high speed
+      displays exist, real graphics become possible. In contrast, graphics cannot normally be done
+      with slow serial connections. There's just too much information to transfer to the
+      display.</para>
+
+    <para>Some time ago, MIT devised a standard way of sending graphics information to specialized
+      "smart" terminals. Instead of sending data about every bit to draw, programs send graphics
+      commands. In essence, these graphics commands are glorified escape sequences. Of course, the
+      terminal has to be prepared to interpret these commands by running software called an "X
+      server". As a result the terminal requires a powerful CPU of its own with lots of memory.
+      The MIT system is called the "X Window System". It has become a standard in the Unix
+      environment.</para>
+
+    <para>If you have an X terminal, your terminal can understand the graphics information sent to
+      it via "X client programs" running on the host. The X terminal correctly handles the output
+      from many client programs at once. Thus you can run multiple client programs on your host
+      and display their output simultaneously on your X terminal. In fact, if your X terminal is
+      on a network, you can run client programs on several hosts at once and display the output of
+      all of them on the same X terminal. Hosts that support the X window system have a client
+      program that will act like a simple serial terminal (e.g., xterm). Thus you can still run
+      old style programs on your fancy X terminal simply by establishing one or more of these
+      pseudo terminal sessions.</para>
+
+    <para>Just as personal computers can run serial terminal emulators, you also can buy X server
+      software for personal computers. X servers are available for Windows, MacOS, OS/2. Some are
+      commercial products, but free X servers can also be downloaded.</para>
+
+  </section>
+
+  <section>
+    <title>Logging In</title>
+
+    <para>As with any multi-user system, Unix requires that you log in before you can do anything.
+      When you log in, the login program starts a "shell program" for you. It's this shell program
+      that prints the prompt and interprets your commands. The login program also sets your
+      working directory to your home directory. Each user's home directory might be named
+      something like <filename>/home/username</filename> where "username" is that user's
+      username.</para>
+
+    <para>Although it's not necessary, it is traditional to make a user's home directory have the
+      same name as the user. However the exact location of the home directory structure varies
+      from system to system. On some systems it might be under the <filename>/usr</filename>
+      directory (this is an rather old-fashion configuration). On other systems it might be under
+        <filename>/home</filename>. On very large systems, there might be a directory for each
+      letter of the alphabet with home directories under each as appropriate. For example,
+      jjones's home directory might be <filename>/users/j/jjones</filename>. This approach keeps
+      the number of home directories in any one directory relatively small.</para>
+
+    <para>Also when you log in, your shell program will execute one or more scripts of commands.
+      The traditional Bourne Shell first runs the script <filename>/etc/profile</filename>. Then
+      it runs the script <filename>.profile</filename> located in your home directory. The system
+      administrator can set global parameters in <filename>/etc/profile</filename>, and you can
+      customize your environment by editing <filename>.profile</filename>.</para>
+
+    <para>It is important to understand that multiple shell programs (or command processors) exist
+      and are in wide usage. On Linux systems the "Bourne Again Shell" (bash) is commonly the
+      default. It is largely upwardly compatible with the traditional Bourne Shell. However the "C
+      Shell" (csh) and "Korn Shell" (ksh) have significant user communities. The commands accepted
+      by these shells are mostly the same since most commands are actually separate programs that
+      are executed by the shell. However, many details, such as the location(s) of the log in
+      scripts, vary from shell to shell.</para>
+
+    <para>When you are done using the system, you must log out. Type <command>exit</command> at
+      the shell prompt to terminate your shell program. In general if you forget to log out, the
+      next person who uses your terminal will find that you are still logged in. They will have
+      total access to your files.</para>
+
+    <para>In more modern environments it is common to interact with a Unix system by way of a
+      "Secure Shell" (SSH) connection. SSH refers to a network protocol that encrypts that data
+      between the client program (a terminal emulator that "speaks" the SSH protocol), and the SSH
+      server on the Unix host. Many different SSH client programs exist and each has its own way
+      of logging in and it's own manner of configuration. However, once you have logged into the
+      Unix host, your experience of using the system is largely the same as I described above. You
+      interact with a shell program such as bash, typing commands that execute on the Unix
+      host.</para>
+
+  </section>
+
+  <section>
+    <title>Special Characters</title>
+
+    <para>When you use a Unix system, there are several control characters that you should know
+      about. Precisely which characters is a characteristic of your terminal. You can change these
+      mappings using the stty program. Type <command>stty</command> at the prompt with no
+      arguments to view your current mappings. In the table below the '^' character means you need
+      to press and hold the control key (often labeled as "ctrl") while pressing the following
+      letter.</para>
+
+    <table frame="all">
+      <title>Special Control Characters</title>
+      <tgroup cols="2" align="left">
+        <tbody>
+
+          <row>
+            <entry>^D</entry>
+
+            <entry>This character is used to signal the end-of-file condition (EOF). Many Unix
+              programs read their standard input (the keyboard) until they encounter an EOF. Type
+              ^D to send an EOF to the program. If a program appears stuck, try typing ^D at
+              it.</entry>
+
+          </row>
+
+          <row>
+            <entry>^C</entry>
+
+            <entry>This is the interrupt character. This will usually abruptly terminate a program
+              that's stuck in an infinite loop.</entry>
+
+          </row>
+
+          <row>
+            <entry>^S</entry>
+
+            <entry>On ordinary terminals, ^S usually pauses the scrolling. This is the XOFF
+              character.</entry>
+
+          </row>
+
+          <row>
+            <entry>^Q</entry>
+
+            <entry>Normally ^Q (XON) restarts scrolling after a ^S.</entry>
+
+          </row>
+
+          <row>
+            <entry>^U</entry>
+
+            <entry>This character causes the current line to be erased. It is sometimes called the
+              kill character.</entry>
+
+          </row>
+
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>If you are using the Korn Shell, and if your EDITOR environment variable is set to
+      "emacs", the shell will accept emacs commands for editing the command line. In particular,
+      ^F and ^B will move the cursor on the current command. ^P and ^N will let you step throught
+      your command history. Depending on the terminal you are using, you may be able to use the
+      arrow keys for these functions as well.</para>
+
+    <para>One issue that causes a lot of confusion relates to the DEL and BACKSPACE characters.
+      People normally want the character to the left of the cursor to be deleted when they press
+      the backspace key on their keyboard. However, some systems will execute a destructive delete
+      only when they receive a DEL character (ASCII 127). This means that you may need to
+      configure your terminal or terminal emulation software so that it sends a DEL character when
+      you press the backspace key and not the backspace character (ASCII 8). As an alternative, it
+      may be possible to configure your host to do a destructive backspace when it receives the
+      backspace character. You can use the <command>stty</command> command to configure
+      this.</para>
+
+    <screen>
+$ stty erase '^?'
+</screen>
+
+    <para>This will cause a DEL character to do a destructive backspace.</para>
+
+    <screen>
+$ stty erase '^h'
+</screen>
+
+    <para>This will cause a backspace character to do a destructive backspace.</para>
+
+  </section>
+
+  <section>
+    <title>The File System</title>
+
+    <para>As with Windows, the Unix file system is arranged as a hierarchy of files and
+      directories. Unix uses a forward slash (/) character instead of Windows's back slash (\)
+      character as a delimiter between the components of a path. Compare</para>
+
+    <literallayout class="monospaced">
+Windows: \SUBDIR\SUBDIR\FILE.TXT
+Unix   : /subdir/subdir/file.txt
+</literallayout>
+
+    <para>Unix has no drive specifiers (no A:, C:, F:, etc). Instead all files on all disks appear
+      to be under one directory tree. For example, files under the <filename>/floppy</filename>
+      directory might actually be on the floppy disk. Thus instead of using
+        <filename>A:...</filename> to refer to a file on the floppy disk, you use
+        <filename>/floppy/...</filename> In other words, all files appear to be in the same file
+      system. As another example, manual files on a CD ROM might appear under a directory such as
+        <filename>/archives/lib/manuals</filename>.</para>
+
+    <para>This is usually much easier for users to understand. Instead of having to remember both
+      in which directory and on which disk a file is located, the user must just remember the
+      directory name. Also, as the system grows, files can be moved to new disks without changing
+      the logical arrangement of the files. In fact, the entire file system can be arranged on the
+      disks differently without the users even knowing what has happened.</para>
+
+    <para>Unix file names are case sensitive. That is, the names <filename>xyz</filename>,
+        <filename>XYZ</filename>, and <filename>Xyz</filename> all refer to different files. By
+      tradition, most file names are in lower case. The maximum number of characters allowed in a
+      file name varies from system to system. However it is typically 252 or more. Technically,
+      all characters are legal in a file name except for the slash character and the null
+      character. A file could be named <filename>\&lt;*&gt;!</filename>. File names can even
+      contain spaces and control characters. In practice, dealing with unusual file names is a
+      hassle; you should avoid it.</para>
+
+    <para>Unix does not assign any special significance to file extensions. In contrast, Windows
+      requires, for example, that all executable files have a <filename>.exe</filename> or a
+        <filename>.com</filename> extension (this isn't entirely true for modern Windows systems).
+      Unix has no similar requirement; most executable files have no extension. Note that some
+      programs require certain extensions in the names of their data files.</para>
+
+    <para>If a file name starts with a '.' character, the Unix file listing program,
+        <command>ls</command>, will not display it unless explicitly directed to do so. Such files
+      are said to be "hidden" files. They are not really hidden. You can manipulate them exactly
+      like other files. However to see them in a directory listing, you must invoke
+        <command>ls</command> with the <command>-a</command> option. Also most programs that scan
+      over directories skip the "dot files" unless told otherwise. Hidden dot files are useful for
+      configuration files and other files that have to be around, but that you don't want
+      cluttering up your directory listing.</para>
+
+    <para>In general, file names are specified by giving a path from the root directory to the
+      file itself. For example</para>
+
+    <literallayout class="monospaced">
+/                         The root directory itself
+/subdir                   A subdirectory under /
+/subdir/subdir            A subdirectory under /subdir
+/subdir/subdir/file.txt   A file located in /subdir/subdir
+</literallayout>
+
+    <para>These fully elaborated names (that contain all the directories, etc) are called
+      "absolute pathnames".</para>
+
+    <para>At any give moment, a program has a working or default directory. You can specify files
+      more easily by using relative pathnames that start at the working directory. Relative
+      pathnames never start with a slash; absolute pathnames always do. For example</para>
+
+    <literallayout class="monospaced">
+afile.txt                In the working directory.
+subdir/afile.txt         In a dir below the working dir.
+</literallayout>
+
+    <para>When you use relative pathnames, you can use the special name <filename>..</filename> to
+      refer to the directory immediately above the working directory. For example</para>
+
+    <literallayout class="monospaced">
+../afile.txt             In the parent directory.
+../subdir/afile.txt      In a sibling directory.
+../../afile.txt          In a grandparent directory.
+</literallayout>
+
+    <para>You can also use the special name <filename>.</filename> to refer to the working
+      directory. This is useful when a command requires a directory name and you want to use the
+      working directory, but don't want to bother typing its absolute pathname. For example</para>
+
+    <screen>
+$ cp ../*.txt .
+</screen>
+
+    <para>copies all files matching *.txt from the parent directory to the working
+      directory.</para>
+
+    <para>In general, you use an absolute pathname whenever you aren't sure what the working
+      directory is. For example, absolute pathnames are common in shell scripts since the author
+      of the script can never be sure from which directory the script will be launched. You use
+      relative pathnames more often interactively since they are usually less typing.</para>
+
+    <para>As with Windows, there is no obvious way to determine if a name is a name of a
+      subdirectory or the name of a file. For example, faced with a name such as
+        <filename>/abc/def/ghi</filename> you can't tell by looking at it if
+        <filename>ghi</filename> is a file or a directory. Some commands operate differently
+      depending on whether or not they've been given the name of a file or of a directory. These
+      commands must refer to the disk to determine this information. They cannot tell by looking
+      at the name itself.</para>
+
+  </section>
+
+  <section>
+    <title>Process Tree</title>
+
+    <para>There is a difference between a program and a process. A program is a static
+      entity&#x2014;the machine instructions that are to be executed. A process is a dynamic
+      entity. A process includes not only the instructions of the program, but also its data and
+      stack, its open files, its file locks, its semaphores, etc. Thus a process is what a program
+      becomes once it is in the machine and executing. A process is not just a program. It is also
+      all the resources allocated to the running program by the operating system.</para>
+
+    <para>The naive user believes that they start processes. In fact, only processes start other
+      processes. When the user types a command such as</para>
+
+    <screen>
+$ emacs afile.txt
+</screen>
+
+    <para>the user's shell spawns emacs. We say that emacs is a child process of the user's shell.
+      Emacs may spawn children of its own. These processes become the grandchildren of the user's
+      shell.</para>
+
+    <para>Normally the shell waits for the child to terminate before it continues. However, since
+      Unix is multi-tasking, it is possible for a process to continue right away after spawning a
+      child. In this way a parent process can spawn other children before the first child has
+      died. In turn the children can spawn multiple children of their own. Thus a user's shell
+      might be the root of a tree of processes. Since many programs spawn processes to perform
+      their functions, a user might not even be aware of all the processes that are executing on
+      his/her behalf.</para>
+
+    <para>What of the user's shell? In fact, it is a child of a special process called
+        <command>init</command>. The <command>init</command> process is the first process that
+      runs on a Unix machine. It is started by the kernel when the system is booted. It is the
+      only process ever started by the kernel. Init reads certain files to configure itself and
+      then it spawns a shell to execute some scripts that are typically stored in the
+        <filename>/etc</filename> directory. These scripts perform the bulk of the system startup
+      activities.</para>
+
+    <para>Once the startup scripts have been processed, <command>init</command> spawns a
+        <command>getty</command> process for every serial terminal on the system. Information
+      about all these terminals is stored in a text file. The <command>getty</command> process
+      displays "login:" on the terminal and waits for a user to come along.</para>
+
+    <para>When a user responds to the login prompt, <command>getty</command> overlays itself with
+      the <command>login</command> program. The <command>login</command> program (officially still
+      a child of <command>init</command>) then prompts for the password and verifies that it is
+      correct. The <command>login</command> program then overlays itself with the shell program
+      specified in the user's <filename>/etc/passwd</filename> entry.</para>
+
+    <para>The startup scripts typically also start <command>inetd</command>, the Internet daemon
+      program. This program listens to the network waiting for various types of requests. If a
+      remote user runs a telnet program, <command>inetd</command> picks up the request and spawns
+        <command>telnetd</command> to handle it. The program <command>telnetd</command> then
+      constructs a virtual terminal session, accepts the user's login, and attachs the appropriate
+      shell to the virtual terminal. The <command>inetd</command> process is also responsible for
+      spawning <command>ftpd</command>, <command>fingerd</command>, and other daemon programs as
+      necessary depending on the type of requests that arrive from the network.</para>
+
+    <para>When the user exits their shell, <command>init</command> is awakened (it sleeps once all
+      the <command>getty</command> processes have been started). Seeing that one of its children
+      has died, <command>init</command> spawns a new <command>getty</command> and goes back to
+      sleep.</para>
+
+  </section>
+
+  <section>
+    <title>Users and Groups</title>
+
+    <para>Traditionally Unix uses the file <filename>/etc/passwd</filename> to define who has an
+      account on the system. The file <filename>/etc/passwd</filename> is a plain text file with
+      one line for each user. The lines have several colon delimited fields. Here is the
+      format:</para>
+
+    <literallayout class="monospaced">
+username:e-password:UID:GID:info:directory:program
+</literallayout>
+
+    <para>The username is the user's login name. The e-password is the user's password encrypted
+      (actually the password is "hashed" not encrypted but this difference does not concern us
+      here). The UID is the user's ID number. The GID is the ID number of the user's primary
+      group. Info is any arbitrary information about the user that the system administrator wants
+      to record. Typically, the user's full name and office phone extension go here. Directory is
+      the user's home directory&#x2014;the working directory the user will have when they first
+      log in. Program is the shell program invoked for the user.</para>
+
+    <para>For example, Here is a typical <filename>/etc/passwd</filename> entry:</para>
+
+    <literallayout class="monospaced">
+pchapin:fEeww9j4mODeI:202:20:Peter Chapin:/u/pchapin:/bin/ksh
+</literallayout>
+
+    <para>Here is the <filename>/etc/passwd</filename> entry of the "user" bin. Bin is not a real
+      user, but bin does own many files on the system. It is common for a multi-user system to
+      contain several pseudo users for special purposes.</para>
+
+    <literallayout class="monospaced">
+bin:*:2:2::/bin:/bin/sh
+</literallayout>
+
+    <para>The '*' in the e-passwd field means that it's impossible to log in as bin. An account
+      without a password would have an empty e-passwd field.</para>
+
+    <para>The <filename>/etc/passwd</filename> file is readable by everybody. Several Unix utility
+      programs use the information in <filename>/etc/passwd</filename>. This is because the system
+      normally deals with user ID numbers and most utilities use <filename>/etc/passwd</filename>
+      to convert those numbers into usernames when possible.</para>
+
+    <para>The GID specified in the <filename>/etc/passwd</filename> file is the user's primary
+      group. However, users can be in several other groups as well. The groups that exist on the
+      system are defined by the file <filename>/etc/group</filename>. Here is its format</para>
+
+    <literallayout class="monospaced">
+group-name:e-password:GID:logname-list
+</literallayout>
+
+    <para>The group-name is the name of the group. The e-password is not used. The GID is the ID
+      number of the group. The logname-list is a list of lognames that represent the membership of
+      the group.</para>
+
+    <para>Every process that runs on a Unix system has two UID numbers associated with it. The
+      "real" UID is the ID number of the user that launched the process (directly or indirectly).
+      The "effective" UID is the ID number of the user for which the process has the same security
+      rights. Normally, the real and effective UIDs of a process are the same. I will describe the
+      situation where they are different a little later.</para>
+
+    <para>Every file and directory has an owner. Generally, the owner of a file is the same as the
+      effective UID of the process that created the file.</para>
+
+    <para>In addition, every process has a real GID number associated with it. This GID is the
+      number associated with the real UID in the <filename>/etc/passwd</filename> file. Every
+      process also has an effective GID that is normally the same as the real GID. In addition,
+      every process has an associated group access list that defines the GIDs of all the groups
+      that the process is a member. Normally the group access list is taken from the
+        <filename>/etc/group</filename> file at login time.</para>
+
+    <para>Every file and directory has a group association. This group is usually the effective
+      GID of the process that created the file. However, under some circumstances the GID of a
+      file may be totally unrelated to the file's UID.</para>
+
+  </section>
+
+  <section>
+    <title>File Permissions</title>
+
+    <para>Each file and directory has a set of nine permission bits associated with it. You can
+      see these bits by doing an <command>ls -l</command> command. The nine bits are grouped into
+      three sets of three. The first three pertain to the user who owns the file. The middle three
+      pertain to users in the same group as the file (but who do not own the file). The final
+      three pertain to all other users. The possible permissions are read (r), write (w), and
+      execute (x). Thus a file's permissions might be:</para>
+
+    <literallayout class="monospaced">
+rwxr-x---
+</literallayout>
+
+    <para>This means that the owner can read, write, and execute the file. People in the same
+      group as the file can read and execute it, but not write to it. Everybody else has no access
+      to the file.</para>
+
+    <para>When you talk about a file's permissions (or "mode" as it's often called), you often use
+      a three digit octal number to represent the permission bits. For example</para>
+
+    <literallayout class="monospaced">
+rwxr-x---    Mode = 750 (111,101,000)
+</literallayout>
+
+    <para>Here are some common permissions as applied to files.</para>
+
+    <literallayout class="monospaced">
+rwxrwxrwx         (777) Everybody can do anything.
+rwx------         (700) The owner can do anything.
+rwxr-x---         (750) People in the group have access.
+r--r--r--         (444) Read only.
+rw-------         (600) Not a program. Owner only.
+rw-r-----         (640) Not a program. Group has access.
+</literallayout>
+
+    <para>For directories, the meaning of the bits is slightly different.</para>
+
+    <table frame="all">
+      <title>Directory Permissions</title>
+      <tgroup cols="2">
+        <tbody>
+
+          <row>
+            <entry>r</entry>
+
+            <entry>You can read the directory. You need this to get a directory listing with the
+                <command>ls</command> command.</entry>
+
+          </row>
+
+          <row>
+            <entry>w</entry>
+
+            <entry>You can write the directory. You need this to create files, or links in the
+              directory. You need this to delete files in the directory. You can delete a file you
+              cannot access if you have (w) permission to the directory!!</entry>
+
+          </row>
+
+          <row>
+            <entry>x</entry>
+
+            <entry>You can search the directory. You need this to look up a name in a
+              directory.</entry>
+
+          </row>
+
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>For example suppose you did <command>cp /home/me/afile.txt /home/you</command>. For this
+      to work, you need (x) access to the root directory so you can look up the name "home". You
+      need (x) access to the <filename>/home</filename> directory so you can look up the name
+      "me". You need (x) access to <filename>/home/me</filename> so you can look up the name
+      "afile.txt". You need (r) access to <filename>/home/me/afile.txt</filename> so you can open
+      the file for reading. You need (w) access to <filename>/home/you</filename> so you can
+      create a directory entry for the new file.</para>
+
+  </section>
+
+  <section>
+    <title>The Superuser</title>
+
+    <para>Most multi-user systems have a special user for whom security restrictions do not apply.
+      On Unix systems, this user (almost) always has the username "root". Informally, root is
+      referred to as "the superuser."</para>
+
+    <para>The superuser can manipulate any file or directory regardless of its permissions, change
+      permissions on any file, change the UID or GID on any file, modify /etc/passwd, terminate
+      any process, or bring the system down. In short, there is nothing the superuser cannot do
+      (well... almost nothing).</para>
+
+    <para>The mere existence of a superuser is security hazard&#x2014;if you are inclined to steal
+      passwords, the superuser password is the one to steal. Yet a superuser is necessary. When a
+      user accidentally locks themselves out of their own account, the superuser can wade into
+      their files and set matters straight. When a user forgets their password, the superuser can
+      give him or her a new one. When a user's background process goes berserk while that user is
+      on vacation, the superuser can kill it.</para>
+
+    <para>If you are the system administrator on a Unix system absolutely never forget the
+      superuser password!! Without the superuser password, nothing of significance can be done to
+      reconfigure the system. In a short time, the system becomes useless and must be reinstalled
+      from scratch.</para>
+
+  </section>
+
+  <section>
+    <title>Set-UID and Set-GID Programs</title>
+
+    <para>Since normal users cannot write to /etc/passwd, you might be wonder how a normal user
+      can change their password? The "passwd" program used to change passwords has to write to
+      /etc/passwd after all.</para>
+
+    <para>When the passwd program executes, its real UID is that of the user who invoked it.
+      However, its effective UID is that of the superuser. Thus, while passwd is executing, it has
+      the privilege of the superuser. This is because passwd is a "set-UID" program owned by root.
+      When a set-UID program runs, its effective UID is set to that of its owner and not to that
+      of its invoker.</para>
+
+    <para>Many system programs are set-UID. For example, the login program has to have superuser
+      privilege. It must set the real and effective UID of the user's new shell to the correct
+      values. However, only superuser programs can change their real UID.</para>
+
+    <para>You can tell a program is set-UID because an (s) appears in its permission list where
+      the (x) would appear. For example</para>
+
+    <literallayout class="monospaced">
+Permissions    Owner     Group    Name
+r-sr-xr-x      root      other    passwd
+</literallayout>
+
+    <para>The (s) in the execute position for the owner means that passwd is a set-UID program.
+      Notice that passwd is executable by everyone.</para>
+
+    <para>The set-UID feature is useful for non-superusers as well. For example, suppose I were to
+      write a grade reading program that my students could execute to check my grade book. I don't
+      want to grant read access to my grade book to just anyone. Thus I write a program that will
+      only read the appropriate grades, and I make it set-UID owned by me. Thus when a student
+      executes the program, they have the rights of me, and the program can read my grade book
+      file on their behalf.</para>
+
+    <para>Similarly, programs can be set-GID. In that case, when they start executing, their
+      effective GID is set to the group associated with the program and not the real GID of the
+      invoker. For example, VTC3 could write a set-GID program that has the rights of the club but
+      that could be executed by any user.</para>
+
+    <para>Set-GID programs are not as common as set-UID programs.</para>
+
+  </section>
+
+</chapter>

@@ -1,0 +1,1377 @@
+<?xml version="1.0"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+  "http://www.docbook.org/xml/4.5/docbookx.dtd">
+
+<!-- FILE        : shell.xml
+     LAST REVISED: 2020-12-24
+     AUTHOR      : (C) Copyright 2020 by Peter Chapin -->
+
+<chapter>
+  <title>The Bourne Shell</title>
+
+  <para>This section describes the basics of using the command processor called the Bourne Shell
+    (hereafter simply called "the shell"). Note that although the Bourne Shell is the standard
+    command processor on many Unix systems, it is possible to use other shells under Unix. Three
+    of the more popular alternatives are the C Shell (<command>csh</command>), the Korn Shell
+      (<command>ksh</command>), and the Bourne Again Shell (<command>bash</command>). Of these,
+    the Korn Shell and the Bourne Again Shell are upwardly compatible with the Bourne Shell. It is
+    also possible to use the Bourne Shell under other operating systems. For example, Windows
+    implementations of the Bourne Shell exist. This document assumes you are using the shell under
+    Unix.</para>
+
+  <section>
+    <title>Command Line vs Shell Scripts</title>
+
+    <para>The shell allows you to execute any command interactively. Since some commands require
+      more than one line, the shell uses a secondary prompt to accept the additional lines of a
+      multi-line command. For example</para>
+
+    <screen>
+$ for FILE in *
+> do
+>   cp $FILE $HOME/backups
+>   echo "Saved $FILE on `date`" >>$HOME/.backupinfo
+> done
+$
+</screen>
+
+    <para>This command was typed interactively. However, since it involves a loop, the shell could
+      not act on the command until it saw the "done" keyword. Thus the shell responded with the
+      secondary prompt (a <literal>&gt;</literal>) while it collected the entire command.</para>
+
+    <para>There is no limit to the size of the command or the number of lines or the number of
+      nested control structures that the shell can accept interactively. However, you can only
+      edit the current line. Once you've typed ENTER, that line is committed. You won't want to
+      enter huge commands interactively unless you are a shell virtuoso.</para>
+
+    <para>For more complex operations, you will want to create a shell script. This is a text file
+      that contains the commands you want executed. The first line of the file should be</para>
+
+    <programlisting>
+#!/bin/sh
+</programlisting>
+
+    <para>This line informs the operating system which program will handle the script. For
+      example, if the first line looked like <literal>#!/bin/csh</literal>, the C Shell would be
+      used to handle the script. As a result you can run scripts for other shells than the one you
+      are currently using.</para>
+
+    <para>In a shell script, all material on a line after a <literal>#</literal> character is
+      ignored (except for the first line, as described above). Use this feature to include
+      comments in your script.</para>
+
+    <para>Before the shell can execute a script, you must have execute permission on the file
+      containing the script. You can grant yourself execute permission using the chmod program.
+      The easiest way is to use <command>chmod</command>'s symbolic mode:</para>
+
+    <screen>
+$ chmod u+x scriptfile
+</screen>
+
+    <para>The "u+x" grants (+) execute permission (x) to the user (u) who owns the file. No other
+      permissions are affected. You can also grant execute permission for people in the same group
+      as the file with</para>
+
+    <screen>
+$ chmod g+x scriptfile
+</screen>
+
+    <para>or even</para>
+
+    <screen>
+$ chmod ug+x scriptfile
+</screen>
+
+    <para>to do both the user and the group at the same time.</para>
+
+    <para>Once you have execute permission to a file, you don't normally need to set it again
+      after editing or copying the file.</para>
+
+  </section>
+
+  <section>
+    <title>Shell and Environment Variables</title>
+
+    <para>The shell allows you to store information in shell variables. Shell variables are all
+      strings. There is no notion of "type" within the shell. Traditionally shell variables are
+      named in all uppercase. However, in usual Unix style, both upper and lower case letters are
+      allowed and the names are case sensitive. Many people use lowercase letters exclusively for
+      the names of their shell variables.</para>
+
+    <para>To set a shell variable use an <literal>=</literal> sign immediately after the name. For
+      example</para>
+
+    <screen>
+$ NAME=Peter
+</screen>
+
+    <para>If you put a space before the equals sign, the shell will think you are trying to run a
+      program.</para>
+
+    <screen>
+$ NAME =Peter
+NAME: not found
+$
+</screen>
+
+    <para>You can get a list of all the shell variables currently defined with the
+        <command>set</command> command. To remove the definition of a shell variable use the
+        <command>unset</command> command. For example:</para>
+
+    <screen>
+$ unset NAME
+$
+</screen>
+
+    <para>If you wish to use a shell variable (either in a script or at the command prompt) you
+      must preceed it's name with a <literal>$</literal>. The <literal>$</literal> causes the
+      shell to expand the variable into its value. For example</para>
+
+    <screen>
+$ NAME=Peter
+$ echo NAME
+NAME
+$ echo $NAME
+Peter
+$
+</screen>
+
+    <para>You can put other characters next to the name of a shell variable when you expand it
+      provided the other characters could not possibly be part of the shell variable's name. For
+      example</para>
+
+    <screen>
+$ BACKUP=/home/pchapin/progs/backup.dir
+$ cd $BACKUP/prog1
+$
+</screen>
+
+    <para>Here the shell knows the <literal>$</literal> only applies to the text BACKUP. The
+        <literal>/</literal> character must terminate the name of the shell variable.</para>
+
+    <para>If you want to put the expansion of a shell variable right next to other letters, you
+      can enclose the name of the shell variable inside a <literal>{...}</literal> pair. For
+      example</para>
+
+    <screen>
+$ P=prog
+$ cd ${P}1
+$ pwd
+/home/pchapin/prog1
+$
+</screen>
+
+    <para>The shell has numerous other features regarding the use of <literal>{...}</literal> in
+      this context. For the sake of brevity, I will not discuss them here.</para>
+
+    <para>Normally when you run a program, the shell variables you've defined in your login shell
+      are not present in the child program. Try defining a distinctive shell variable. Type
+        <command>set</command> to verify its existence. Next, type <command>sh</command> at the
+      prompt to run another shell. Type <command>set</command> to see that the shell variable you
+      previously created is not present. Type <command>exit</command> to terminate the second
+      shell.</para>
+
+    <para>The feature means that shell variables you create in scripts will not be present when
+      the script terminates. This is because scripts are actually run in a child shell (exception:
+      if you use the dot command, the script runs in the current shell. For example</para>
+
+    <screen>
+$ . scriptfile
+</screen>
+
+    <para>will cause shell variables introduced in scriptfile to exist after the script
+      terminates).</para>
+
+    <para>In Unix, every process has an environment. The environment of a parent process is
+      inherited by the child process. Thus information placed into the environment by the parent
+      can be referenced by the child (but not visa versa). The shell allows you to name certain
+      shell variables as environment variables. This is done with the export command.</para>
+
+    <screen>
+$ NAME=Peter
+$ export NAME
+$
+</screen>
+
+    <para>Now the shell variable NAME is part of the environment. It's value is accessible in
+      child processes. To see what is part of your environment, type <command>export</command>
+      alone at the prompt.</para>
+
+    <screen>
+$ export
+export TERM
+export PATH
+export EDITOR
+$
+</screen>
+
+    <para>Normally the PATH variable is part of the environment. This allows child shells to find
+      commands the same was as the parent does. The TERM variable usually contains the name of the
+      terminal you are using. This is used by child programs to manage the display. The EDITOR
+      variable is often used by programs to locate a text editor. In this way you can use the
+      editor of your choice with programs that need editor support.</para>
+
+    <para>There are several predefined shell variables that are set when you login or at other
+      times. You can define any others you would like to use in your profile shell script
+      (executed within the login shell before it prints the first prompt). Your profile login
+      script is in the file .profile in your home directory.</para>
+
+    <para>Here is a list of the important predefined shell variables.</para>
+
+    <table frame="all">
+      <title>Predefined Shell Variables</title>
+      <tgroup cols="2">
+        <tbody>
+
+          <row>
+            <entry>$HOME</entry>
+            <entry>The absolute path to your home directory. By using this in a script many
+              different users can execute the script and yet have distinct files created or
+              processed. For example, a script might keep a configuration file in
+                <filename>$HOME/config</filename>. This location is unique for every user.</entry>
+          </row>
+
+          <row>
+            <entry>$PATH</entry>
+            <entry>Colon separated list of directories to search for executable programs.</entry>
+          </row>
+
+          <row>
+            <entry>$CDPATH</entry>
+            <entry>Colon separated list of directories to search when the <command>cd</command>
+              command is given a relative pathname.</entry>
+          </row>
+
+          <row>
+            <entry>$PS1</entry>
+            <entry>The string used for the primary prompt.</entry>
+          </row>
+
+          <row>
+            <entry>$PS2</entry>
+            <entry>The string used for the secondary prompt.</entry>
+          </row>
+
+          <row>
+            <entry>$?</entry>
+            <entry>The status value returned by the last command. Whenever a command executes, it
+              returns an integer to the shell. The meaning of that integer is defined by the
+              command. The <literal>?</literal> shell variable holds the integer. It changes after
+              each command.</entry>
+          </row>
+
+          <row>
+            <entry>$$</entry>
+            <entry>Process ID number of current shell. Useful for making temporary files in public
+              space (like <filename>/tmp</filename>). Since no two processes have the same PID,
+              embedding the PID of the current shell allows a script to keep it's temporary files
+              separate from those of other programs.</entry>
+          </row>
+
+          <row>
+            <entry>$!</entry>
+            <entry>Process ID number of last command launched in the background.</entry>
+          </row>
+
+          <row>
+            <entry>$1</entry>
+            <entry>First argument to the script. Shell scripts can be invoked with arguments just
+              like any other program. The arguments are called $1, $2, $3, etc.</entry>
+          </row>
+
+          <row>
+            <entry>$#</entry>
+            <entry>The number of arguments given to the script.</entry>
+          </row>
+
+          <row>
+            <entry>$*</entry>
+            <entry>A space delimited list of all the arguments given to the script.</entry>
+          </row>
+
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>This list is not complete.</para>
+
+    <para>Note that there exists a <command>shift</command> command that is very useful within
+      scripts. It causes the value of $1 to be forgotten. The value of $2 is put into $1, the
+      value of $3 is put into $2, and so forth. The value of $# is adjusted. Using this feature, a
+      script can loop over all its command line arguments without concern for the exact number of
+      such arguments. For example</para>
+
+    <programlisting>
+# Inside a script file...
+while [ $# -gt 0 ]
+do
+  # Process $1...
+  shift
+done
+</programlisting>
+
+    <para>Even though the commands inside the loop process just $1, each argument is brought into
+      $1 one at a time due to the shift.</para>
+
+    <para>Another technique for doing this is</para>
+
+    <programlisting>
+# Inside a script file...
+for ARG in $*
+do
+  # Process $ARG...
+done
+</programlisting>
+
+  </section>
+
+
+  <section>
+    <title>Quoting</title>
+
+    <para>The shell regards many characters as special. Sometimes it is necessary to pass strings
+      containing those special characters into a program or script as arguments. To prevent the
+      shell from interpreting a special character, its special meaning can be temporarily disabled
+      by quoting the character. There are several ways to do this.</para>
+
+    <para>A single character can be quoted by preceding its name with a backslash. For
+      example</para>
+
+    <screen>
+$ rm The\ File
+</screen>
+
+    <para>deletes the file named <filename>The File</filename>. The space character is part of the
+      first argument to <command>rm</command>. The usual special meaning of space as a delimiter
+      between arguments was disabled for that one character.</para>
+
+    <para>The newline character can also be quoted in this way. For example</para>
+
+    <screen>
+$ rm The\
+> File
+</screen>
+
+    <para>deletes the file named <filename>The\nFile</filename> (using C notation for the newline
+      character). The usual special meaning of the newline character as a command delimiter was
+      disabled for that one character.</para>
+
+    <para>Notice that the shell used the secondary prompt to collect the next line of the
+      command.</para>
+
+    <para>If many characters need to be quoted, it is easier to use the <literal>'...'</literal>
+      matched single quotes. For example</para>
+
+    <screen>
+$ rm '|&lt;*&gt;|'
+</screen>
+
+    <para>deletes the file named <filename>|&lt;*&gt;|</filename>. The special meaning associated
+      with '&gt;', '&lt;', '|', and '*' have been disabled within the single quotes.</para>
+
+    <para>The single quotes does not disable the special meaning of '\', however. For
+      example</para>
+
+    <screen>
+$ rm 'I\'m done'
+</screen>
+
+    <para>deletes the file named <filename>I'm done</filename>. The special meaning of the
+      backslash is still active and thus the special meaning of the single quote just before the
+      'm' is disabled. Only a backslash can disable the special meaning of a backslash.</para>
+
+    <para>Note that the single quotes does disable the special meaning of the newline character.
+      Thus</para>
+
+    <screen>
+$ echo 'This is a mult-line echo command.
+> This stuff is still part of the argument to echo.
+> The newline character is embeded in this argument.
+> The output appears below.'
+This is a mult-line echo command.
+This stuff is still part of the argument to echo.
+The newline character is embeded in this argument.
+The output appears below.
+$
+</screen>
+
+    <para>Double quotes can be used instead of single quotes. However, double quotes do not
+      disable the special meaning of <literal>$</literal> nor of backslash. Since
+        <literal>$</literal> is still handled within double quoted strings, you can cause shell
+      variable expansions to occur in quoted material. For example</para>
+
+    <screen>
+$ NAME=Peter
+$ rm "$NAME's File"
+</screen>
+
+    <para>deletes the file named <filename>Peter's File</filename>. Note that the NAME shell
+      variable is expanded. Note also that the single quote is not special inside a double quoted
+      string.</para>
+
+    <para>Quoting is very important when using programs that process commands containing the very
+      same characters treated in a special way by the shell. For example, the
+        <command>grep</command> command expects its first argument to be a regular expression.
+      Regular expressions use many unusual characters. Thus it is commonly necessary to quote the
+      first argument to <command>grep</command>. It is often done even when not necessary just out
+      of habit. For example</para>
+
+    <screen>
+$ grep '^A.*Z$' afile.txt
+</screen>
+
+    <para>will search <filename>afile.txt</filename> for all lines that start with an 'A' and end
+      with a 'Z'. Note that '*' and '$' are not treated special by the shell because of the
+      enclosing single quotes. Thus these characters are passed to grep as is.</para>
+
+    <screen>
+$ grep 'Peter' afile.txt
+</screen>
+
+    <para>will search <filename>afile.txt</filename> for all lines that contain "Peter." In this
+      case, the quoting is not necessary. However, there is no harm in quoting a character that
+      does not need quoting; it is sometimes done anyway.</para>
+
+    <para>It is also possible to place the standard output of a command onto the command line.
+      This is done using back quotes. For example</para>
+
+    <screen>
+$ cat afile.txt
+user1 user2 user3 user4
+$ mail `cat afile.txt`
+</screen>
+
+    <para>When the shell sees the back quotes it will execute the contained text (in a subshell)
+      and place the standard output of the command back onto the command line to replace the back
+      quoted material. In the example above, the mail command gets run with user1... user4 as
+      arguments.</para>
+
+    <para>When the replacement of text is done, newlines in the standard output of the command are
+      replaced with spaces. Thus if the command produces multiline output, all the text on the
+      various lines gets folded into a single command line.</para>
+
+    <para>Since the shell executes a subshell to process the command, there is no limit to what
+      can be accomplished inside the back quotes. In particular I/O redirection can be done. For
+      example</para>
+
+    <screen>
+$ for DIR in `echo $PATH | sed 's/:/ /g'`
+> do
+>   echo $DIR
+> done
+$
+</screen>
+
+    <para>The subshell expands $PATH, processes the I/O redirection and honors the single quotes.
+      The resulting text forms a list of names over which the loop operates.</para>
+
+    <para>Command substitution can even be nested. This is possible because the backslash is still
+      processed by the shell as a special character even inside back quoted text. However, the
+      backslash is removed before the subshell sees the back quoted text. For example</para>
+
+    <screen>
+$ prog1 `prog2 \`prog3 arg\``
+</screen>
+
+    <para>Here a subshell is created and told to run the command</para>
+
+    <screen>
+prog2 `prog3 arg`
+</screen>
+
+    <para>Of course to run this command the subshell must create still another subshell to
+      run</para>
+
+    <screen>
+prog3 arg
+</screen>
+
+    <para>Back quotes are still honored inside of double quotes, but not inside of single quotes.
+      For example</para>
+
+    <screen>
+$ h
+Hello world
+$ TEST="`h` I'm happy"
+$ echo $TEST
+Hello world I'm happy
+$ TEST='`h` I\'m happy'
+$ echo $TEST
+`h` I'm happy
+$
+</screen>
+
+    <para>Note that in all the cases above TEST contains a single string. Consider</para>
+
+    <screen>
+$ TEST=Hello world
+$ echo $TEST
+Hello
+$ TEST="Hello world"
+$ echo $TEST
+Hello world
+</screen>
+
+    <para>Without the quotes, the second word used in the definition of TEST is simply
+      ignored.</para>
+
+  </section>
+
+
+  <section>
+    <title>Wildcards</title>
+
+    <para>Many Unix utility programs accept a list of filenames on the command line. For
+      example</para>
+
+    <screen>
+$ rm afile.txt bfile.txt cfile.txt
+</screen>
+
+    <para>To facilitate producing such lists, the shell has a wildcard expansion feature. In
+      particular the following characters are used:</para>
+
+    <literallayout class="monospaced">
+*       Matches zero or more of any character in a name.
+?       Matches exactly one character.
+[...]   Matches exactly one character in the set.
+</literallayout>
+
+    <para>For example, to remove everything in the current directory use</para>
+
+    <screen>
+$ rm *
+</screen>
+
+    <para>If you are used to Windows, you might be tempted to use <command>rm *.*</command> This,
+      however, only removes files that contain a dot character in their name. Not all files will
+      match that specification.</para>
+
+    <para>Be sure you realize that the '*' in the example above is interpreted by the shell. That
+      is, the shell finds all matching files and replaces the '*' on the command line with a list
+      of the names. The rm program does not realize that you used a wildcard.</para>
+
+    <para>Thus if you want to handle wildcards in your own programs, all you need to do is be sure
+      your program can process a list of file names off the command line. The shell will take it
+      from there.</para>
+
+    <para>Suppose you wanted to remove the files memo1, memo2, and memo3. You might use</para>
+
+    <screen>
+$ rm memo?
+</screen>
+
+    <para>The shell will produce a list of file names that start with <filename>memo</filename>
+      and have one additional character at the end of their name. Thus the file
+        <filename>memo_list</filename> would not be matched while <filename>memox</filename> would
+      be matched.</para>
+
+    <para>You could also do</para>
+
+    <screen>
+$ rm memo[123]
+</screen>
+
+    <para>Here the shell will only match the names <filename>memo1</filename>,
+        <filename>memo2</filename>, or <filename>memo3</filename> (if they exist). The file
+        <filename>memox</filename> would be spared.</para>
+
+    <para>Finally you could do</para>
+
+    <screen>
+$ rm memo[1-3]
+</screen>
+
+    <para>The '-' character inside the square brackets implies a range. This is easier than typing
+      all the possibilities if the range is large. For example</para>
+
+    <screen>
+$ rm doc[A-Z].rev.[0-9]
+</screen>
+
+    <para>Normally you use directories to partition your files into managable groups. However, if
+      you also use sensible naming conventions for your files (distinctive extensions or
+      prefixes), you can refer to different file sets within one directory using wildcard
+      characters. For example, suppose I gave all my memos a <filename>.mmo</filename> extension.
+      Then I could extract all the memos from a directory and move them into a
+        <filename>$HOME/memos</filename> directory with a command such as</para>
+
+    <screen>
+$ mv *.mmo $HOME/memos
+</screen>
+
+    <para>I don't need to worry about accidently moving some other type of file out of the working
+      directory.</para>
+
+  </section>
+
+
+  <section>
+    <title>I/O Redirection</title>
+
+    <para>One of the shell's most important features is it's ability to redirect the standard
+      input and standard output of any program. Programs that ordinarly write to the screen can
+      have that output sent to a file. Programs that ordinarly read from the keyboard can have
+      their input redirected from a file. For example</para>
+
+    <screen>
+$ prog >afile.txt
+</screen>
+
+    <para>Now <filename>afile.txt</filename> contains the text that <command>prog</command> would
+      have displayed on the screen.</para>
+
+    <screen>
+$ prog &lt;bfile.txt
+</screen>
+
+    <para>Now <command>prog</command> reads its input from <filename>bfile.txt</filename> rather
+      than from the keyboard.</para>
+
+    <para>Both the input and the output can be redirected.</para>
+
+    <screen>
+$ prog &lt;bfile.txt &gt;afile.txt
+</screen>
+
+    <para>The I/O redirection part of the command line is not sent to the program. As far as
+        <command>prog</command> is concerned in the examples above, it is being executed with no
+      arguments. If <command>prog</command> wants arguments, they can be put on the command line
+      anywhere relative to the I/O redirection operators. For example</para>
+
+    <screen>
+$ prog &lt;bfile.txt arg1 &gt;afile.txt
+$ prog arg1 &gt;afile.txt &lt;bfile.txt
+$ prog &gt; afile.txt &lt; bfile.txt arg1
+</screen>
+
+    <para>all do the same thing.</para>
+
+    <para>Ordinarily when output redirection is used, the shell truncates the output file to zero
+      size first if it already exists. Commonly you want to append the new output to the end of
+      the file. This can be done with the '&gt;&gt;' operator. For example</para>
+
+    <screen>
+$ echo "Finished processing on `date`" &gt;&gt;$HOME/results
+</screen>
+
+    <para>This saves the current date (and time) into the file <filename>results</filename> in the
+      home directory. It adds a new record onto the end of any existing records.</para>
+
+    <para>Many Unix programs that process the data inside files will accept the name of the
+      file(s) to process on the command line. If there are no such names presented, a typical Unix
+      program will process whatever it finds at its standard input. Consider the commands below.
+      They both search the file <filename>afile.txt</filename> looking for lines that contain the
+      string "Peter."</para>
+
+    <screen>
+$ grep 'Peter'   afile.txt
+$ grep 'Peter' &lt; afile.txt
+</screen>
+
+    <para>In the second case, the <command>grep</command> command does not see any file name on
+      the command line. It thus reads it's standard input (which happens to be the same file as
+      named in the first command).</para>
+
+    <para>This behavior allows you to test a program without creating a special data file. Just
+      run it and type at it. For example</para>
+
+    <screen>
+$ grep 'Peter'
+Hello.
+Anybody there?
+My name is Peter.
+My name is Peter.
+What's your name?
+Is it Peter also?
+Is it Peter also?
+^D
+$
+</screen>
+
+    <para>The '^D' (control+D) causes the terminal to generate an EOF character. Notice how
+        <command>grep</command> printed out lines that contained the string 'Peter.'</para>
+
+    <para>The shell allows you to direct the standard output of one program into the standard
+      input of another. This is done with the pipe operator '|.' This ability, coupled with the
+      behavior described above, makes the Unix system powerful. For example</para>
+
+    <screen>
+$ ls -l | grep '^d'
+</screen>
+
+    <para>This command displays all lines in the output of the <command>ls -l</command> command
+      that start with a 'd'. Such lines are entries for subdirectories.</para>
+
+    <screen>
+$ who | wc -l
+</screen>
+
+    <para>This command sends the output of <command>who</command> to the word count program to
+      count the number of lines in <command>who</command>'s output. The result is a count of the
+      number of users logged into the system.</para>
+
+    <screen>
+$ prog args | mail pchapin
+</screen>
+
+    <para>This command mails the output of the <command>prog</command> command to pchapin. This
+      works because the mail program accepts the message to be mailed at it's standard
+      input.</para>
+
+    <para>It is possible to redirect or pipe the output of entire loops. For example</para>
+
+    <screen>
+$ for FILE in *
+> do
+>   process $FILE
+>   echo "Done with $FILE on `date`"
+> done &gt; $HOME/results
+$
+</screen>
+
+    <para>Note the redirection done after the 'done' keyword. All the output generated within the
+      loop (except for stuff explicitly redirected) is put into
+      <filename>$HOME/results</filename>. This is faster and cleaner than redirecting with append
+      each command within the loop.</para>
+
+    <para>Pipes are also possible.</para>
+
+    <screen>
+$ for FILE in *
+> do
+>   process $FILE
+> done | sort &gt; $HOME/results
+$
+</screen>
+
+    <para>When you redirect the output of a loop, the loop is run in a subshell. This may be
+      significant if the point of the loop is to set shell variables.</para>
+
+  </section>
+
+
+  <section>
+    <title>Multiple Commands, Sub-commands and Background Commands</title>
+
+    <para>The shell allows you to run several commands on one command line. Each command must be
+      separated with a semicolon. For example</para>
+
+    <screen>
+$ cd $HOME; ls -l | more; dostuff
+</screen>
+
+    <para>Often after changing the permissions on a file, you want to do a directory listing to
+      see if you did things right.</para>
+
+    <screen>
+$ chmod u+x script; ls -l script
+</screen>
+
+    <para>You can arrange things so that a second command executes only if the first command
+      returns a successful status code (zero). For example</para>
+
+    <screen>
+$ prog1 &amp;&amp; prog2
+</screen>
+
+    <para>Here <command>prog1</command> is executed first. If <command>prog1</command> returns a
+      status code of zero, <command>prog2</command> is executed. On the other hand if
+        <command>prog1</command> fails, <command>prog2</command> is not attempted. The overall
+      command stops after the first failed program.</para>
+
+    <para>You can also do</para>
+
+    <screen>
+$ prog1 || prog2
+</screen>
+
+    <para>Here <command>prog2</command> is executed only if <command>prog1</command> fails. That
+      is the command stops after the first successful program.</para>
+
+    <para>You can force commands to be executed in a subshell by enclosing them in parenthesis.
+      Since a subshell has it's own working directory and shell variables, this can be useful in
+      some situations. Compare</para>
+
+    <screen>
+$ pwd
+/home/pchapin
+$ echo $NAME
+Peter
+$ cd ..; NAME=PHOO
+$ pwd
+/home
+$ echo $NAME
+PHOO
+$
+</screen>
+
+    <para>with</para>
+
+    <screen>
+$ pwd
+/home/pchapin
+$ echo NAME
+Peter
+$ (cd ..; NAME=PHOO)
+$ pwd
+/home/pchapin
+$ echo NAME
+Peter
+$
+</screen>
+
+    <para>The output of a command executed in a subshell can be redirected as a group.
+      Compare</para>
+
+    <screen>
+$ prog1; prog2 &gt; afile.txt
+$ (prog1; prog2) &gt; afile.txt
+</screen>
+
+    <para>In the first case only the output of <command>prog2</command> is redirected. In the
+      second case the output of both commands are redirected.</para>
+
+    <para>Since Unix is multitasking, it can run programs in the background while you enter
+      additional commands. This is done by putting a '&amp;' character at the end of the command
+      line. For example:</para>
+
+    <screen>
+$ prog args &amp;
+$
+</screen>
+
+    <para>Notice that in the example above, the standard output of the background command is still
+      the terminal. Thus any output produced by prog will be written directly on the terminal
+      right over whatever else you are doing. Since this is usually not desireable, you should
+      normally redirect the output of a background command.</para>
+
+    <screen>
+$ prog1 | prog2 &gt; afile.txt 2&gt; errors.txt &amp;
+$
+</screen>
+
+    <para>As you can see, pipelines can be run in the background. Also note that the standard
+      error file has also been redirected with the '2&gt;' operator. Thus error messages are
+      prevented from interrupting your foreground process also.</para>
+
+    <para>It is possible to run multiple commands in the background by specifying a subshell or to
+      run loops in the background (in which case a subshell is implicitly specified). For
+      example</para>
+
+    <screen>
+$ (prog1; prog2) &amp;
+$ for FILE in *
+>   process $FILE
+> done &amp;
+$
+</screen>
+
+  </section>
+
+
+  <section>
+    <title>Control Flow</title>
+
+    <para>To write interesting scripts you need to know about branching, looping, etc. First, you
+      should realize that every command returns an exit status value to the shell. This value is
+      accessible via the $? shell variable. Normally, however, you do not use $?. Instead you use
+      control flow commands that automatically check $?. Here is the format of the 'if'
+      command.</para>
+
+    <screen>
+$ if command
+> then
+>   # Do this if 'command' returns a zero status (TRUE).
+> fi
+$
+</screen>
+
+    <para>Note that 'fi' is used to terminate an 'if' block. 'Fi' is 'if' spelled
+      backwards.</para>
+
+    <para>The basic idea is simple. The command designated by <command>command</command> is run.
+      If that command returns a status value of zero, the commands past the 'then' get executed;
+      otherwise they are skipped. The 'then' keyword plays the role of a command. Since multiple
+      commands can be placed on the command line, another way to format the example above is
+      as</para>
+
+    <screen>
+$ if command; then
+>   # Do this if 'command' returns a zero status (TRUE).
+> fi
+$
+</screen>
+
+    <para>The syntax of the 'if' command allows for an else. Here are some possibilites.</para>
+
+    <screen>
+$ if command1; then
+>   # Do this if 'command1' returns a zero status.
+> else
+>   # Do this if 'command1' returns a nonzero status.
+> fi
+$
+</screen>
+
+    <para>or</para>
+
+    <screen>
+$ if command1; then
+>   # 'command1' was true.
+> elif command2; then
+>   # 'command2' was true.
+> else
+>   # Neither 'command1' nor 'command2' were true.
+> fi
+$
+</screen>
+
+    <para>Many commands return a status code based on what they do. For example, the
+        <command>grep</command> command returns success if it finds at least one match.
+        <command>Grep</command> has an option which suppresses the printing of all matches (silent
+      mode). At first such an option seems silly. However, it allows <command>grep</command> to be
+      used in an 'if' command cleanly. For example</para>
+
+    <screen>
+$ if grep -s 'Peter' afile.txt; then
+>   # The string 'Peter' was found. Haven't told the user yet.
+> fi
+$
+</screen>
+
+    <para>By far, the program most often used with the 'if' command is a program named
+        <command>test</command>. <command>Test</command> simply makes a test and returns with an
+      appropriate status. <command>Test</command> has many options.</para>
+
+    <screen>
+$ test -f afile.txt # TRUE if afile.txt is a file that exists.
+$ test -r afile.txt # TRUE if afile.txt is a read only file.
+$ test -d afile.txt # TRUE if afile.txt is a directory.
+$ test -x afile.txt # TRUE if afile.txt is executable.
+$ test -r afile.txt # TRUE if afile.txt is readable.
+$ test -w afile.txt # TRUE if afile.txt is writable.
+
+$ test $X -eq $Y
+  # TRUE if X and Y are equal (when converted to ints).
+$ test $X -ne $Y    # X!= Y
+$ test $X -gt $Y    # X &gt; Y
+$ test $X -lt $Y    # X &lt; Y
+$ test $X -ge $Y    # X &gt;=Y
+$ test $X -le $Y    # X &lt;=Y
+
+$ test $X = $Y
+  # TRUE if X and Y are equal as strings.
+$ test $X != $Y     # X not the same as Y
+</screen>
+
+    <para>The difference between strings and integers is very significant. For example</para>
+
+    <screen>
+$ FIRST=Hello
+$ SECOND=There
+$ if test $FIRST -eq $SECOND; then
+>  echo They are the same.
+> fi
+They are the same.
+$ if test $FIRST != $SECOND; then
+>  echo They are different.
+> fi
+They are different.
+$
+</screen>
+
+    <para>The reason why the first test succeeded is because the string "Hello" became the integer
+      zero in the test. Similarly the string "There" became a zero.</para>
+
+    <para>Note that spaces are important. The arguments to <command>test</command> are like any
+      other program's arguments. <command>Test</command> is like any other program.</para>
+
+    <para>You can use the -o (OR) and the -a (AND) options of test to create more complex tests.
+      For example</para>
+
+    <screen>
+$ if test $X -eq $Y -a $A -eq $B; then
+>  echo X == Y and A == B
+> fi
+X == Y and A == B
+$
+</screen>
+
+    <para>You can use parenthesis to create even more complex tests. However, since parenthesis
+      are special to the shell, you must quote the parenthesis to prevent the shell from handling
+      them. The shell must pass the parenthesis to the test program. For example</para>
+
+    <screen>
+$ if test \($X = $Y\) -o \($A != $B\); then
+... etc.
+</screen>
+
+    <para>Since <command>test</command> is used so much, the shell has a special syntax for
+      invoking it. For example</para>
+
+    <screen>
+$ if [ $X -eq $Y ]; then ....
+
+$ if test $X -eq $Y; then ....
+</screen>
+
+    <para>Both the commands above are identical. The square bracket syntax is much easier to read.
+      I will use it from now on. Note that there must be a space immediately after the open square
+      bracket. For example</para>
+
+    <screen>
+$ X=prog
+$ if [$X = $Y]; then ....
+[prog: not found
+$
+</screen>
+
+    <para>The shell attempted to run the command <command>[prog</command>. The square bracket
+      alone signals the special test syntax. The spaces around the trailing ] are optional. For
+      consistency, they are usually included.</para>
+
+    <para>The while loop follows many of the same rules and concepts developed above. Here is the
+      basic syntax</para>
+
+    <screen>
+$ while command
+> do
+>   # Do this as long as 'command' returns a TRUE status.
+> done
+$
+</screen>
+
+    <para>Normally the command is an invocation of test with the special syntax. For
+      example</para>
+
+    <screen>
+$ while [ $X -lt $Y ]; do ....
+</screen>
+
+    <para>The shell also provides an until loop. However, unlike what you would expect, this loop
+      still performs its test before the loop body is entered. For example in</para>
+
+    <screen>
+$ until commmand
+> do
+>   # Do this until 'command' returns a TRUE status.
+> done
+$
+</screen>
+
+    <para>the loop body is skipped if <command>command</command> returns TRUE immediately.</para>
+
+    <para>Finally, the shell provides a case statement (similar in concept to C's switch
+      statement). Here is it's syntax</para>
+
+    <programlisting>
+case test-string in
+  pattern-1)
+    commands;;
+  pattern-2)
+    commands;;
+  pattern-3)
+    commands;;
+esac
+</programlisting>
+
+    <para>The 'test-string' is an arbitrary string of characters. The shell tries to match each of
+      the patterns to the test-string. When it finds a matching pattern, it executes commands up
+      to the ';;'. The patterns are tested in the order they appear. Furthermore, the shell uses
+      the wildcard matching syntax within the patterns. For example suppose the following appeared
+      in a script:</para>
+
+    <programlisting>
+echo "Enter your response: \c"
+read Response junk
+
+case $Response in
+  [yY]*)
+    echo "You said YES!";;
+  [nN]*)
+    echo "You said NO!";;
+  *)
+    echo "I don't know what you're talking about.";;
+esac
+</programlisting>
+
+    <para>The script would assume you said "yes" to any response that started with a 'y' (upper or
+      lower case). If your response started with an 'n', the shell would assume "no." Otherwise
+      the shell prints an error message.</para>
+
+    <para>In addition, you can join several patterns with a logical OR operator (|). For
+      example:</para>
+
+    <programlisting>
+case $Response in
+  yes | Yes)
+    echo "You said YES!";;
+  *)
+    echo "Ok, ok, I won't do it.";;
+esac
+</programlisting>
+
+  </section>
+
+
+  <section>
+    <title>Arithmetic</title>
+
+    <para>The Bourne Shell has no built in ability to do arithmetic calculations. In contrast the
+      C Shell, the Korn Shell, and Bash all have such an ability. However, the Bourne Shell can
+      make use of the external program <command>expr</command> to do such calculations.</para>
+
+    <para>The <command>expr</command> program accepts numeric arguments and the usual operators.
+      It outputs on its standard output file the calculated results. Expr can use parenthesis to
+      group expressions.</para>
+
+    <para>There are two things you must remember when using <command>expr</command>: First, since
+      its taking things as arguments, spaces are significant on its command line. Second, since
+      many of the arthmetic operators are special characters to the shell, you must quote things
+      liberally.</para>
+
+    <para>For example</para>
+
+    <screen>
+$ expr 2 \* 3
+6
+$ expr 10 / \( 2 + 3 \)
+2
+$
+</screen>
+
+    <para>You might be tempted to do something like</para>
+
+    <screen>
+$ expr "10 / ( 2 + 3 )"
+</screen>
+
+    <para>It doesn't work because <command>expr</command> needs each operator and operand to be
+      it's own argument. The double quotes makes everything one big argument.</para>
+
+    <para>Normally <command>expr</command> is used inside scripts. For example to increment the
+      numeric value stored in the shell variable 'COUNT' do this:</para>
+
+    <programlisting>
+$ COUNT=`expr $COUNT + 1`
+</programlisting>
+
+    <para>Notice the use of back quotes to force <command>expr</command>'s standard output back
+      onto the command line where it can be used to redefine the value of COUNT.</para>
+
+  </section>
+
+
+  <section>
+    <title>Shell Functions</title>
+
+    <para>The shell allows you to define functions. A shell function is loaded when the shell sees
+      the definition. However, the text of the function is not executed at the time the function
+      is loaded. Instead, a shell function is called like a script. Parameters can be passed to
+      the function and used in the function under the names $1, $2, etc.</para>
+
+    <para>For example</para>
+
+    <screen>
+$ function(){
+>   echo My first parameter is $1
+>   echo My second parameter is $2
+>}
+$ function one two
+My first parameter is one
+My second parameter is two
+$
+</screen>
+
+    <para>Unlike C, you do not specify parameters inside the (). The () syntax just informs the
+      shell that this is a function definition.</para>
+
+    <para>If a shell function is used inside a script, the values of $1, $2, etc in the function
+      refer to the function's parameters and not the script's parameters. They are local to the
+      function. Any other shell variable introduced or used in a function, however, is global. The
+      shell does not really support local variables within functions.</para>
+
+    <para>Many scripts consist of several functions together with a small main body. Remember that
+      shell functions are not executed when they are loaded. For example</para>
+
+    <programlisting>
+Initialize(){
+  #...
+  #...
+}
+
+Print_Message(){
+  #...
+  #...
+}
+
+Do_Work(){
+  #...
+  #...
+}
+
+Clean_Up(){
+  #...
+  #...
+}
+
+Initialize
+Print_Message "Hello There"
+Do_Work
+Clean_Up
+</programlisting>
+
+    <para>You can use shell functions to simulate aliases or commands from other operating
+      systems.</para>
+
+    <programlisting>
+cls(){
+  echo "\033[2J"
+}
+
+dir(){
+  ls -l $1
+}
+
+copy(){
+  cp $1 $2
+}
+
+sendall(){
+  mail `cat mailing.list` &lt; $1
+}
+</programlisting>
+
+    <para>If you load these functions in your <filename>.profile</filename> script, they will be
+      available to you whenever you are logged in. Note that although the examples above are
+      simple, there is no limit to the complexity of a shell function. Large functions with many
+      nested control structures are possible and realistic.</para>
+
+  </section>
+
+
+  <section>
+    <title>Examples</title>
+
+    <para>To really understand how the shell works, you need to see it in action. What follows is
+      a simple examples of real shell script. See if you can understand how it works.</para>
+
+    <programlisting>
+#!/bin/sh
+#############################################################################
+# FILE        : process
+# AUTHOR      : Peter Chapin
+# LAST REVISED: September 1999
+# SUBJECT     : Sample shell script.
+#
+#      The following shell script accepts a list of filenames on the command
+# line and presents the user with a menu of possible actions for each file in
+# that list. Once the user has decided about the disposition of a file, the
+# next file is presented.
+#############################################################################
+
+if [ ! -w . ] ; then
+  echo "No write access to the current directory: Can't continue"
+else
+
+  # Loop over all the files specified on the command line.
+  for FILENAME in $* ; do
+
+    # Assume that we will stay on this file. Set to "no" below if otherwise.
+    RETRY=yes
+
+    # Ignore directories, etc.
+    if [ ! -f $FILENAME ] ; then
+      echo "$FILENAME is not a plain file: ignoring."
+      echo "Strike RETURN to continue...\c"
+      read junk
+    else
+
+      # Keep presenting the menu until user does something with the file.
+      while [ $RETRY = "yes" ] ; do
+        echo " "
+        echo "\033[2J\033[1;1HFILE: $FILENAME\n"
+        echo "  0) No action"
+        echo "  T) Type"
+        echo "  V) View"
+        echo "  N) reName"
+        echo "  R) Remove"
+        echo "  C) make a new Copy"
+        echo "  D) copy to a Directory"
+        echo "  Q) Quit"
+        echo "Enter command digit: \c"
+        read RESPONSE junk
+
+        # Handle each command.
+        case $RESPONSE in
+
+          0) # No action.
+             RETRY=no;;
+
+        T|t) # Type of file.
+             file $FILENAME;;
+
+        V|v) # View file.
+             more $FILENAME;;
+
+        N|n) # Rename file. Be sure new name is free for use.
+             echo "Enter the new name: \c"
+             read NAME junk
+             if [ -f $NAME -o -d $NAME ] ; then
+               echo "$NAME already exists"
+             else
+               mv $FILENAME $NAME
+               RETRY=no
+             fi;;
+
+        R|r) # Remove file (no questions asked).
+             rm $FILENAME
+             RETRY=no;;
+
+        C|c) # Copy file. Be sure new name is free for use.
+             if [ ! -r $FILENAME ] ; then
+               echo "Can't read $FILENAME"
+             else
+               echo "Enter the name of the new copy: \c"
+               read NAME junk
+               if [ -f $NAME -o -d $NAME ] ; then
+                 echo "$NAME already exists"
+               else
+                 cp $FILENAME $NAME
+                 RETRY=no
+               fi
+             fi;;
+
+        D|d) # Copy to a directory. Be sure name is really that of a dir.
+             if [ ! -r $FILENAME ] ; then
+               echo "Can't read $FILENAME"
+             else
+               echo "Enter the name of the destination directory: \c"
+               read NAME junk
+               if [ ! -d $NAME ] ; then
+                 echo "$NAME is not a directory"
+               elif [ ! -w $NAME ] ; then
+                 echo "Can't write in the directory $NAME"
+               else
+                 cp $FILENAME $NAME
+                 RETRY=no
+               fi
+             fi;;
+
+        Q|q) exit;;
+          *) echo "I don't understand $RESPONSE"
+        esac
+
+      echo "Strike RETURN to continue\c"
+      read junk
+
+      done  # End of while... loop which waits for RETRY to become "no"
+    fi      # End of if...else... which ignores special files.
+  done      # End of while... loop which processes all the filenames.
+fi          # End of if...else... which checks for writability to .
+</programlisting>
+
+  </section>
+
+</chapter>
